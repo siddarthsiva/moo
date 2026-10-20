@@ -257,9 +257,12 @@ Futures contracts carry significant leverage. The execution engine enforces stri
 ```
 C:\projects\moo\
 │
+├── .streamlit/
+│   └── config.toml           # Bloomberg Terminal dark theme & headless server parameters
+├── .gitignore                # Git ignore patterns for Python bytecode & virtual envs
 ├── config.py                 # CME contract specifications, crush models, risk parameters, factor weights
 ├── main.py                   # Command-line orchestrator (scan, backtest, rebalance, dashboard, train-ml)
-├── requirements.txt          # 100% free open-source dependencies
+├── requirements.txt          # 100% free open-source dependencies (pandas, numpy, scipy, yfinance, pyarrow)
 ├── README.md                 # System overview and quickstart guide
 ├── CONTEXT.md                # (This file) Complete technical context, math, and domain manual
 ├── DASHBOARD_COMMANDS.md     # Bloomberg terminal dashboard lifecycle and execution control guide
@@ -270,7 +273,7 @@ C:\projects\moo\
 │
 ├── data/                     # Free Data Acquisition Pipeline
 │   ├── __init__.py
-│   ├── data_loader.py        # Unified market loader with local pickle/parquet caching & offline fallback
+│   ├── data_loader.py        # Unified market loader with live Yahoo Finance feeds & parquet caching
 │   ├── cot_fetcher.py        # Public CFTC Commitments of Traders downloader & parser
 │   ├── macro_fetcher.py      # Free FRED macro series, US Drought Monitor & NOAA ONI SST loader
 │   └── mock_generator.py     # Stochastic synthetic generator for deterministic 8-asset testing
@@ -301,7 +304,7 @@ C:\projects\moo\
 │
 ├── ui/                       # User Interface
 │   ├── __init__.py
-│   └── app.py                # Bloomberg Terminal-style quantitative trading dashboard (5 workspaces)
+│   └── app.py                # Bloomberg Terminal quantitative trading dashboard (6 workspaces, live CME feeds)
 │
 └── tests/                    # Testing Suite
     ├── __init__.py
@@ -315,6 +318,7 @@ C:\projects\moo\
 The platform's frontend is styled as an authentic Bloomberg Professional Terminal interface:
 - **Aesthetic Design:** Pure obsidian black (`#000000`), signature amber headers (`#ff9900`), terminal uptick green (`#00ff66`), crimson red (`#ff3b30`), cyan ratios (`#00e5ff`), dark gridlines (`#161922`), and monospace typography (`Roboto Mono`).
 - **Terminal Status Bar:** Command line prompt emulation (`CMD> AGRI LE <GO>`), live connection status (`GLOBEX CME: LIVE`), and UTC timestamps.
+- **Real-Time Market Data Feed:** Integrated toggle for live Yahoo Finance CME/CBOT continuous futures quotes, on-demand cache purge button (`[F5] / REFRESH LIVE DATA`), active quote date telemetry badge, and 5-minute cache TTL (`ttl=300`).
 - **Universal Multi-Display Responsive Engine:** Custom CSS Grid, media query breakpoints, and fluid typography system ensuring that the terminal renders on any screen resolution from 4K ultrawide monitors down to smartphones.
 
 #### Cross-Device Responsive Architecture & Ergonomic Specifications:
@@ -452,6 +456,11 @@ python main.py --mode dashboard
 
 # 9. Launch Dashboard on Custom Port in Headless Mode
 streamlit run ui/app.py --server.port 8502 --server.headless true
+
+# 10. Deploy Permanently Free on Streamlit Community Cloud
+git remote add origin https://github.com/<your-username>/moo.git
+git push -u origin main
+# Then link repository on share.streamlit.io (zero credit card, free forever)
 ```
 
 ---

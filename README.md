@@ -263,19 +263,30 @@ The web workstation is built with a custom CSS Grid and fluid typography engine 
 
 *For detailed startup, shutdown, background running, mobile LAN access, and troubleshooting commands across Windows, Linux, and macOS, see [`DASHBOARD_COMMANDS.md`](DASHBOARD_COMMANDS.md).*
 
-### 5. Simulated Paper Trading Rebalance
+### 5. 100% Free Cloud Hosting (Streamlit Community Cloud)
+Project MOO is configured for permanent free cloud deployment without credit cards or trial limitations:
+1. Push this repository to GitHub:
+   ```bash
+   git remote add origin https://github.com/<your-username>/moo.git
+   git push -u origin main
+   ```
+2. Connect to [share.streamlit.io](https://share.streamlit.io) via GitHub.
+3. Select repository `<your-username>/moo`, branch `main`, and main file `ui/app.py`.
+4. Click **Deploy!** Continuous live market quotes, 5-minute cache TTL, and Bloomberg dark terminal styling are pre-configured.
+
+### 6. Simulated Paper Trading Rebalance
 Generate and dispatch simulated portfolio rebalance orders:
 ```bash
 python main.py --mode rebalance --enso super_elnino
 ```
 
-### 6. Train Walk-Forward ML Alpha Model
+### 7. Train Walk-Forward ML Alpha Model
 Train the ensemble ML model (Gradient Boosted Trees + Random Forest + pure-NumPy regularized Ridge fallback) and output factor importances:
 ```bash
 python main.py --mode train-ml --symbol LE=F
 ```
 
-### 7. Run Comprehensive Test Suite
+### 8. Run Comprehensive Test Suite
 Execute the unit and integration test suite across data loading, factors, ML, risk manager, backtester, and paper trader:
 ```bash
 python -m unittest tests/test_all.py
@@ -287,9 +298,12 @@ python -m unittest tests/test_all.py
 
 ```
 moo/
+├── .streamlit/
+│   └── config.toml               # Bloomberg Terminal dark theme & headless server settings
+├── .gitignore                    # Python cache, virtual env & OS ignore rules
 ├── config.py                     # CME specs, global country profiles, vessel fleet & cost benchmarks
 ├── main.py                       # CLI orchestrator and command dispatcher
-├── requirements.txt              # 100% free open-source dependencies
+├── requirements.txt              # 100% free open-source dependencies (incl. pyarrow)
 ├── README.md                     # System overview and quickstart guide
 ├── CONTEXT.md                    # Complete technical context, math, and domain manual
 ├── DASHBOARD_COMMANDS.md         # Terminal dashboard lifecycle and execution control guide
@@ -298,7 +312,7 @@ moo/
 │   └── *.parquet, *.pkl          # Cached price, COT, drought, and ONI series
 ├── data/
 │   ├── __init__.py
-│   ├── data_loader.py            # Unified market data loader (yfinance + pickle/parquet cache)
+│   ├── data_loader.py            # Unified market data loader (live Yahoo Finance + parquet fallback)
 │   ├── cot_fetcher.py            # Free CFTC Commitments of Traders downloader & parser
 │   ├── macro_fetcher.py          # Free FRED Macro, US Drought Monitor & NOAA ONI loader
 │   ├── mock_generator.py         # High-fidelity synthetic 8-asset market generator
@@ -330,7 +344,7 @@ moo/
 │   └── metrics.py                # Institutional tear-sheet metrics & monthly returns matrix
 ├── ui/
 │   ├── __init__.py
-│   ├── app.py                    # Bloomberg Terminal UI with Universal Responsive Engine
+│   ├── app.py                    # Bloomberg Terminal UI with Live CME Feeds & Responsive Engine
 │   └── supply_chain_view.py      # [NEW] Workstation 06 UI (Breed map, S&D, Sankey, AIS, Costs, News)
 └── tests/
     ├── __init__.py

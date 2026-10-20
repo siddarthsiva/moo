@@ -109,6 +109,11 @@ Once started, open any web browser and navigate to:
 
 ### Sidebar Controls & Function Keys:
 - **Workspace Navigation:** Radio selector for the 6 workspaces above.
+- **Market Data Feed Configuration:**
+  - **`Live Yahoo Finance Feeds` (Toggle):** Switches between live real-time continuous futures quotes (CME: `LE=F`, `GF=F`, `HE=F`, `DC=F`; CBOT: `ZC=F`, `ZM=F`; NYMEX: `CL=F`; ICE: `DX-Y.NYB`) and local benchmark data.
+  - **`🔄 REFRESH LIVE DATA` (Button):** Force-clears Streamlit data cache (`st.cache_data.clear()`) and immediately pulls the latest market quotes and candles.
+  - **Data Feed Status Badge:** Live telemetry indicator displaying `● LIVE YAHOO FEED [YYYY-MM-DD]` in terminal green or `● BENCHMARK CACHE` in amber.
+  - **Cache Invalidation TTL:** 300-second (5-minute) automated cache cycle ensuring live quote currency without incurring cloud rate-limiting.
 - **Climatology Compensation Engine:** Dropdown to toggle active climate regimes (`Super El Niño`, `El Niño`, `Neutral`, `La Niña`).
 - **Apply Regime Factor Weights `[F4]`:** Instantly sets recommended alpha weights for the active climate regime.
 - **Factor Weight Sliders:** Real-time continuous adjustment of individual factor allocations (Crush Margin, CFTC COT, Seasonality, Drought/Macro, Kalman Trend, ML Ensemble).
@@ -246,3 +251,33 @@ python -m unittest tests/test_all.py
   If Yahoo Finance or remote public endpoints are blocked or slow, the data pipeline automatically falls back to the deterministic high-fidelity synthetic benchmark generator without crashing.
 - **Additional System Context**:
   For comprehensive mathematics, factor weighting tables, contract specs, and market microstructure, refer to [`CONTEXT.md`](CONTEXT.md) and [`README.md`](README.md).
+
+---
+
+## 9. 100% Free Cloud Hosting (Streamlit Community Cloud)
+
+Project MOO can be hosted **100% free forever** on Streamlit Community Cloud with **no credit card required, no trial periods, and automated CI/CD re-deployments on Git push**.
+
+### Step-by-Step Deployment:
+
+1. **Initialize & Push Git Repository to GitHub:**
+   ```bash
+   git remote add origin https://github.com/<your-username>/moo.git
+   git branch -M main
+   git push -u origin main
+   ```
+
+2. **Connect Streamlit Community Cloud:**
+   - Navigate to [share.streamlit.io](https://share.streamlit.io) and sign in with your GitHub account.
+   - Click **"New app"**.
+   - Set **Repository:** `<your-username>/moo`
+   - Set **Branch:** `main`
+   - Set **Main file path:** `ui/app.py`
+   - Set **App URL (optional):** Choose your custom subdomain (e.g. `project-moo.streamlit.app`).
+   - Click **Deploy!**
+
+3. **Runtime Configuration & Cloud Optimization:**
+   - **Pre-configured Theme & Server:** Included in `.streamlit/config.toml` (enforces Bloomberg terminal pure black background `#000000`, amber accent `#ff9900`, monospace font, and headless execution).
+   - **Parquet Support:** `pyarrow>=14.0.0` is specified in `requirements.txt` to enable high-speed parquet parsing on Debian cloud containers.
+   - **Continuous Live Market Updates:** The hosted dashboard connects to Yahoo Finance directly with a 5-minute cache TTL (`ttl=300`), pulling fresh price action whenever users interact with the dashboard.
+   - **Zero-Downtime Continuous Deployment:** Any commit pushed to your GitHub repository automatically triggers an instantaneous build and hot-reload on Streamlit Community Cloud.
