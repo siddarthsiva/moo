@@ -130,22 +130,23 @@ An intense equatorial Pacific ENSO warm phase (Super El Niño, defined by NOAA C
 
 ---
 
-## 4. The 6 Multi-Factor Quantitative Engines
+## 4. The 7 Multi-Factor Quantitative Engines (v2.0)
 
-Project MOO synthesizes 6 uncorrelated alpha drivers into a composite alpha score $S_t \in [-1.0, +1.0]$:
+Project MOO synthesizes 7 uncorrelated alpha drivers into a composite alpha score $S_t \in [-1.0, +1.0]$:
 
-$$S_t = \sum_{i=1}^{6} w_i \cdot F_{i,t} \quad \text{where } \sum w_i = 1.0$$
+$$S_t = \sum_{i=1}^{7} w_i \cdot F_{i,t} \quad \text{where } \sum w_i = 1.0$$
 
-### Quantitative Factor Weight Regimes
+### Quantitative Factor Weight Regimes (v2.0)
 
 | Factor Engine | Key | Neutral / Baseline Weight | Super El Niño Weight | Quantitative Mechanism |
 | :--- | :--- | :--- | :--- | :--- |
-| **Cattle Crush & Feedlot Margin** | `crush_margin` | $0.25$ ($25\%$) | $0.25$ ($25\%$) | Feedlot gross transformation margin & Feeder/Live parity ratio |
-| **CFTC COT Smart Money** | `cot_sentiment` | $0.20$ ($20\%$) | $0.15$ ($15\%$) | Commercial hedger accumulation vs Managed Money crowding |
-| **Biological Seasonality** | `seasonality` | $0.15$ ($15\%$) | $0.20$ ($20\%$) | Biological cattle calendar & Fourier harmonic regression |
-| **US Drought & Macro DXY** | `macro_drought` | $0.15$ ($15\%$) | $0.25$ ($25\%$) | Plains drought severity, NOAA ONI SST, & DXY currency elasticity |
-| **Kalman Adaptive Trend** | `technical_trend` | $0.15$ ($15\%$) | $0.10$ ($10\%$) | 1D Kalman state filter, Donchian breakout & Garman-Klass vol |
-| **Walk-Forward ML Ensemble** | `ml_ensemble` | $0.10$ ($10\%$) | $0.05$ ($5\%$) | Walk-forward Gradient Boosted Trees + Random Forest ensemble |
+| **Cattle Crush & Feedlot Margin** | `crush_margin` | $0.22$ ($22\%$) | $0.22$ ($22\%$) | Feedlot gross transformation margin & Feeder/Live parity ratio |
+| **CFTC COT Smart Money** | `cot_sentiment` | $0.18$ ($18\%$) | $0.13$ ($13\%$) | Commercial hedger accumulation vs Managed Money crowding |
+| **Biological Seasonality** | `seasonality` | $0.15$ ($15\%$) | $0.18$ ($18\%$) | Biological cattle calendar & Fourier harmonic regression |
+| **US Drought & Macro DXY** | `macro_drought` | $0.15$ ($15\%$) | $0.22$ ($22\%$) | Plains drought severity, NOAA ONI SST, & DXY currency elasticity |
+| **Kalman + MACD + Squeeze** | `technical_trend` | $0.15$ ($15\%$) | $0.10$ ($10\%$) | 1D Kalman filter, MACD, Bollinger Squeeze, CMO & Donchian (v2.0) |
+| **Corn Price Velocity** | `corn_velocity` | $0.07$ ($7\%$) | $0.10$ ($10\%$) | Cross-asset corn momentum as feedlot margin leading indicator (v2.0 NEW) |
+| **Walk-Forward ML Ensemble** | `ml_ensemble` | $0.08$ ($8\%$) | $0.05$ ($5\%$) | Stacked GB + RF + ET + meta-LR ensemble (v2.0 enhanced) |
 
 ---
 
@@ -198,19 +199,36 @@ Extracts institutional positioning from public CFTC Commitments of Traders weekl
 
 ---
 
-### Factor 5: Kalman Trend & Momentum (`technical_trend`)
+### Factor 5: Kalman Trend, MACD & Momentum (`technical_trend`) — v2.0 Enhanced
 * **1D Adaptive Kalman Filter:**
   $$\hat{x}_t^- = \hat{x}_{t-1}, \quad P_t^- = P_{t-1} + Q$$
   $$K_t = \frac{P_t^-}{P_t^- + R}, \quad \hat{x}_t = \hat{x}_t^- + K_t(z_t - \hat{x}_t^-), \quad P_t = (1 - K_t)P_t^-$$
 * **Donchian 20-Day Breakout:** Position within 20-day high-low envelope.
 * **Garman-Klass Efficient Volatility Estimator:**
   $$\sigma_{GK}^2 = \frac{1}{2}\left(\ln\frac{\text{High}}{\text{Low}}\right)^2 - (2\ln 2 - 1)\left(\ln\frac{\text{Close}}{\text{Open}}\right)^2$$
-  Offers ~8x greater efficiency than close-to-close estimators, providing real-time volatility estimates for continuous contract sizing.
+  Offers ~8x greater efficiency than close-to-close estimators.
+* **MACD Histogram Signal (v2.0 NEW):** `(EMA_12 - EMA_26) - EMA_9(EMA_12 - EMA_26)` normalized by 60-day rolling std.
+* **Bollinger Band Squeeze Detector (v2.0 NEW):** Detects when BB width narrows below Keltner Channel width. The directionality (close vs midband) determines bullish vs bearish breakout bias.
+* **Chande Momentum Oscillator (v2.0 NEW):** `CMO = (ΣUp_n - ΣDown_n) / (ΣUp_n + ΣDown_n)` over 14 periods — orthogonal to RSI.
+* **v2.0 Composite Weight:** 30% Kalman + 20% Multi-TF Momentum + 15% Donchian + 15% MACD + 10% Bollinger Squeeze + 5% CMO + 5% RSI
 
 ---
 
-### Factor 6: Walk-Forward Ensemble Machine Learning (`ml_ensemble`)
-* **Model Architecture:** Histogram Gradient Boosted Trees (`HistGradientBoostingClassifier`) blended with Random Forests (`RandomForestClassifier`), featuring an automated pure-NumPy regularized Ridge probability fallback when binary C-extension DLLs are constrained.
+### Factor 6: Cross-Asset Corn Price Velocity (`corn_velocity`) — v2.0 NEW
+* Corn futures price momentum (blended 20d + 60d) as a leading indicator for feedlot margin expansion.
+* **Signal Logic:** Falling corn prices signal expanding feedlot gross margins 3–6 months forward → bullish for LE/GF.
+  $$F_{\text{corn\_vel}} = -1.0 \times \frac{(0.60 \times \Delta P_{\text{Corn},60} + 0.40 \times \Delta P_{\text{Corn},20}) / P_{\text{Corn}}}{\sigma_{252}}$$
+* Under Super El Niño (bumper corn crop), weight elevated to $0.10$ from baseline $0.07$.
+
+---
+
+### Factor 7: Walk-Forward Ensemble Machine Learning (`ml_ensemble`) — v2.0 Enhanced
+* **v2.0 Three-Layer Stacked Architecture:**
+  1. **Level-0 Base Learners:** HistGradientBoostingClassifier + RandomForestClassifier + ExtraTreesClassifier
+  2. **Level-1 Meta-Learner:** LogisticRegression trained on out-of-fold Level-0 predictions
+  3. **Dynamic Accuracy Weighting:** Base learner blend weight $\propto$ rolling OOS accuracy on each validation fold
+* **v2.0 Expanded Feature Set (40–55 features):** Multi-period returns (1d/5d/10d/20d/60d), vol regime ratio (vol10/vol60), MACD histogram, Bollinger %B, volume-weighted return, factor z-scores (60-day rolling), factor 5d/20d deltas, cross-factor interactions (Crush×Macro, Tech×COT), cyclical month encoding (sin/cos).
+* **v2.0 Signal Calibration:** `tanh(raw_signal * 0.9)` for smooth probability-to-signal conversion vs prior linear clipping.
 * **Validation:** Strict expanding window walk-forward validation with a 5-day forward embargo to ensure **zero data leakage**.
 
 ---
@@ -245,7 +263,15 @@ Futures contracts carry significant leverage. The execution engine enforces stri
          ▼
 [ Execution Friction & Smoothing ]
          │
-         ├─► Minimum Holding Period: 3 Days (Hysteresis Filter against Whipsaws)
+         ├─► Signal Smoothing: EMA-based exponential decay (v2.0, replaces hard min-hold)
+         │      alpha_ema = 2 / (min_hold_days + 1); smoothed over raw signal series
+         │
+         ├─► Alpha Momentum Filter (v2.0 NEW): Dual-EMA alpha regime detection
+         │      Bullish alpha regime: suppress bearish signals by 30%
+         │      Bearish alpha regime: suppress bullish signals by 30%
+         │
+         ├─► Half-Kelly Sizing Hint (v2.0 NEW): kelly_fraction = 0.5 * (p*b - q) / b
+         │      Rolling 60-day win-rate estimate from composite alpha history
          │
          └─► Friction Modeling: 2.5 bps Slippage + $2.50 / Contract Commission
 ```
@@ -486,3 +512,52 @@ python -m unittest tests/test_all.py
 10. `test_backtest_simulation`: Verifies event-driven simulation, realistic slippage/commissions, tear-sheet metrics, and monthly return heatmaps.
 11. `test_paper_trader_scan_and_execute`: Verifies live multi-asset signal scanning and persistent portfolio ledger updates.
 12. `test_super_elnino_compensation`: Verifies end-to-end Super El Niño climatology compensation (ONI classification, heifer retention alpha boost, autumn calf run damping, and feedlot mud drag).
+
+
+---
+
+## 10. v2.0 Model Changelog
+
+### Released: November 2026
+
+#### ML Predictor (`models/ml_predictor.py`) — v2.0
+| Change | Detail |
+| :--- | :--- |
+| **ExtraTreesClassifier added** | Decorrelated tree ensemble (ET) added as 3rd base learner alongside HistGB + RF |
+| **LogisticRegression meta-learner** | Out-of-fold stacking with Level-1 LR meta-learner for optimal blend |
+| **Dynamic OOS accuracy weighting** | Base learner weights proportional to rolling OOS fold accuracy |
+| **Expanded feature set (+15 features)** | MACD histogram, Bollinger %B, vol regime ratio (vol10/vol60), factor z-scores, 5d/20d factor deltas, cross-interactions (Crush×Macro, Tech×COT), cyclical month encoding, volume-weighted return |
+| **Tanh signal conversion** | `tanh(raw * 0.9)` replaces linear `(p - 0.5) / 0.25` for smooth probability calibration |
+| **OOS accuracy tracking** | `self.mean_oos_accuracy` and `get_signal_quality_report()` diagnostic helpers |
+
+#### Technical Factors (`factors/technical.py`) — v2.0
+| Change | Detail |
+| :--- | :--- |
+| **MACD Histogram** | 12/26/9 MACD histogram normalized by 60-day rolling std → 15% composite weight |
+| **Bollinger Band Squeeze** | Squeeze intensity × directional bias (close vs midband) → 10% composite weight |
+| **Chande Momentum Oscillator** | 14-period CMO orthogonal to RSI → 5% composite weight |
+| **Revised composite weights** | 30% Kalman + 20% Momentum + 15% Donchian + 15% MACD + 10% Squeeze + 5% CMO + 5% RSI |
+
+#### Factor Engine (`factors/factor_engine.py`) — v2.0
+| Change | Detail |
+| :--- | :--- |
+| **Corn Velocity factor** | New 7th factor: inverted corn price momentum as feedlot margin leading indicator |
+| **Volatility Regime Dampener** | Vol ratio scalar [0.5, 1.0] applied to all factors during high-vol spikes |
+| **Rolling IC calculation** | `calculate_rolling_ic()` returns IC time-series per factor for dashboard charting |
+| **IC-weighted composite alpha** | Optional `use_ic_weighting=True` mode for dynamic factor allocation |
+| **Factor correlation matrix** | `get_factor_correlation_matrix()` for orthogonality diagnostics |
+
+#### Strategy (`models/strategy.py`) — v2.0
+| Change | Detail |
+| :--- | :--- |
+| **EMA smoothing** | Exponential decay smoothing replaces hard min-hold period for position hysteresis |
+| **Alpha momentum filter** | Dual-EMA regime filter: dampens counter-trend entries by 30% |
+| **Half-Kelly sizing hint** | `kelly_fraction` column in signals_df: rolling 60d win-rate estimate × 0.5 |
+| **IC weighting toggle** | `use_ic_weighting` parameter enables rolling IC-proportional factor re-weighting |
+| **Spread trading corn confirmation** | Corn velocity used as secondary confirmation for Feeder/Live spread entries |
+
+#### Config (`config.py`) — v2.0
+| Change | Detail |
+| :--- | :--- |
+| **`corn_velocity` factor** | Added to both `DEFAULT_FACTOR_WEIGHTS` (7%) and `SUPER_ELNINO_FACTOR_WEIGHTS` (10%) |
+| **Weight rebalancing** | All factors renormalized to sum to 1.0 with corn_velocity included |

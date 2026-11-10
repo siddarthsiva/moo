@@ -143,15 +143,16 @@ CATTLE_CRUSH_CONFIG = {
 }
 
 # -------------------------------------------------------------------------
-# Multi-Factor Weight Configuration (Composite Alpha)
+# Multi-Factor Weight Configuration (Composite Alpha) — v2.0
 # -------------------------------------------------------------------------
 DEFAULT_FACTOR_WEIGHTS = {
-    "crush_margin": 0.25,     # Feedlot Crush Margin & Spread mean-reversion
-    "cot_sentiment": 0.20,    # Commercial Hedger smart-money vs Speculator crowding
-    "seasonality": 0.15,      # Monthly/Weekly seasonal biological cycle
-    "macro_drought": 0.15,    # US Drought severity & DXY dollar export pressure
-    "technical_trend": 0.15,  # Kalman trend, ATR breakout, momentum
-    "ml_ensemble": 0.10,      # Machine Learning Ensemble forward probability
+    "crush_margin":    0.22,  # Feedlot Crush Margin & Spread mean-reversion
+    "cot_sentiment":   0.18,  # Commercial Hedger smart-money vs Speculator crowding
+    "seasonality":     0.15,  # Monthly/Weekly seasonal biological cycle
+    "macro_drought":   0.15,  # US Drought severity & DXY dollar export pressure
+    "technical_trend": 0.15,  # Kalman trend, MACD, Bollinger, ATR breakout, momentum (v2.0)
+    "corn_velocity":   0.07,  # Cross-asset corn price velocity → feedlot margin leading indicator (v2.0 NEW)
+    "ml_ensemble":     0.08,  # Walk-Forward Stacked ML Ensemble (v2.0: HistGB + RF + ET + meta-LR)
 }
 
 # -------------------------------------------------------------------------
@@ -177,14 +178,15 @@ ENSO_CONFIG = {
     "atr_stop_loss_mult_elnino": 2.8,      # Wider stops to withstand weather headline volatility
 }
 
-# Factor Weights Tuned for Super El Niño Climatology Regime
+# Factor Weights Tuned for Super El Niño Climatology Regime — v2.0
 SUPER_ELNINO_FACTOR_WEIGHTS = {
-    "crush_margin": 0.25,     # Feedlot margins expand as corn plunges
-    "cot_sentiment": 0.15,    # Commercial positioning confirmation
-    "seasonality": 0.20,      # Modulated seasonal curve (damped autumn calf run)
-    "macro_drought": 0.25,    # Elevated weight: ENSO moisture, heifer retention & export shock
+    "crush_margin":    0.22,  # Feedlot margins expand as corn plunges
+    "cot_sentiment":   0.13,  # Commercial positioning confirmation
+    "seasonality":     0.18,  # Modulated seasonal curve (damped autumn calf run)
+    "macro_drought":   0.22,  # Elevated weight: ENSO moisture, heifer retention & export shock
     "technical_trend": 0.10,  # Lower weight: trend followers get whipsawed by weather jumps
-    "ml_ensemble": 0.05,      # ML ensemble probability
+    "corn_velocity":   0.10,  # Highest weight in El Niño: corn supply surge is key price driver (v2.0 NEW)
+    "ml_ensemble":     0.05,  # ML ensemble probability
 }
 
 # -------------------------------------------------------------------------

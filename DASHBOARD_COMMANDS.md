@@ -1,6 +1,8 @@
-# Project MOO // Dashboard Control Guide
+# Project MOO // Dashboard Control Guide — v2.0
 
 This document outlines all commands and procedures to **start up**, **access**, **shut down**, and **troubleshoot** the Bloomberg Terminal-style Streamlit quantitative dashboard (`ui/app.py`).
+
+> **v2.0 Model Note:** The dashboard now runs the upgraded 7-factor alpha engine including the new Corn Velocity factor, MACD/Bollinger Squeeze/CMO technical indicators, and a stacked 3-learner ML ensemble (HistGB + RF + ExtraTrees + meta-LR). The `kelly_fraction` signal column is now visible in the Factor Research workstation.
 
 ---
 
