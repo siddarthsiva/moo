@@ -181,8 +181,15 @@ The Streamlit web interface (`ui/app.py`) adheres strictly to Bloomberg Terminal
 5. **Charts 1-12:** Full OHLC + Kalman, Crush Margin, Correlation Heatmap, Factor Radar, Term Structure, Vol Cone, COF, Cutout, COT, Protein Ratio, Depth of Market, and VaR Distribution.
 
 ### Additional Dedicated Workstations
-* **`02 // STRATEGY BACKTESTER`**: Interactive event-driven futures backtesting engine.
-* **`03 // FACTOR RESEARCH`**: Five deep-dive quantitative research panes.
+* **`02 // STRATEGY BACKTESTER`**: Interactive event-driven futures backtesting engine with point multipliers, tick slippage, dynamic ATR stops, Half-Kelly sizing dynamics, rolling 6-month Information Coefficient (IC) time series, and optional Dynamic IC Re-weighting mode.
+* **`03 // FACTOR RESEARCH`**: Seven deep-dive quantitative research panes:
+  1. `[01] CATTLE CRUSH SPREAD`: Feedlot gross margin ($/head) with regime parity (1.35 neutral, 1.42 Super El Niño).
+  2. `[02] CFTC COT POSITIONING`: Commercial hedgers vs managed money net contracts and 3-year percentile index.
+  3. `[03] BIOLOGICAL SEASONALITY`: Monthly excess return profile (%) for Live Cattle and Feeder Cattle.
+  4. `[04] DROUGHT & MACRO DXY`: US Plains Cattle Pasture Drought Severity Index (0–100) and DXY elasticity.
+  5. `[05] ENSO ONI CLIMATOLOGY`: NOAA ONI SST Anomaly historical curve and 5-channel transmission matrix.
+  6. `[06] CORN VELOCITY SPREAD (v2.0 NEW)`: Cross-asset corn price momentum (20d/60d) as leading feedlot margin indicator and parity equilibrium bands.
+  7. `[07] ML ENSEMBLE ARCHITECTURE (v2.0 NEW)`: Three-layer stacked meta-pipeline (HistGB + RF + ExtraTrees → LogisticRegression), top 12 feature importance ranking, and smooth tanh signal calibration.
 * **`04 // PAPER PORTFOLIO`**: Persistent simulated portfolio accounting engine.
 * **`05 // CME SPECS & ARCH`**: Exchange contract specifications matrix.
 * **`06 // GLOBAL SUPPLY CHAIN & AIS`**: Global physical bovine intelligence, maritime tracking, and industry economics desk.

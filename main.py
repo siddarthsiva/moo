@@ -52,6 +52,7 @@ def run_live_scan(symbols=None, enso="super_elnino"):
 
     summary_table = []
     for sym, res in scan_results.items():
+        kelly_str = f"{res.get('kelly_fraction', 0.0)*100:.1f}%"
         summary_table.append([
             res["symbol"],
             res["name"],
@@ -60,13 +61,14 @@ def run_live_scan(symbols=None, enso="super_elnino"):
             res["signal_regime"],
             f"{res['composite_alpha']:+.3f}",
             f"{res['target_weight']*100:.0f}%",
+            kelly_str,
             f"{res['recommended_contracts']} contracts",
             f"${res['stop_loss_price']:.2f}",
             f"${res['take_profit_price']:.2f}",
             f"{res['annualized_vol_pct']}%"
         ])
 
-    headers = ["Ticker", "Name", "Price", "1D Chg", "Regime", "Alpha", "Target %", "Size", "Stop Loss", "Take Profit", "Ann. Vol"]
+    headers = ["Ticker", "Name", "Price", "1D Chg", "Regime", "Alpha", "Target %", "Kelly %", "Size", "Stop Loss", "Take Profit", "Ann. Vol"]
     print(tabulate(summary_table, headers=headers, tablefmt="grid"))
 
     # Print ENSO Climatology Telemetry
@@ -85,7 +87,7 @@ def run_live_scan(symbols=None, enso="super_elnino"):
         ]
         print(tabulate(enso_table, headers=["ENSO Metric / Channel", "Status & Quantitative Impact"], tablefmt="simple"))
 
-    print("\n--- Factor Score Decomposition [-1.0 to +1.0] ---")
+    print("\n--- Factor Score Decomposition [-1.0 to +1.0] (v2.0 7-Factor Model) ---")
     for sym, res in scan_results.items():
         f = res["factor_breakdown"]
         f_table = [
@@ -94,7 +96,8 @@ def run_live_scan(symbols=None, enso="super_elnino"):
             ["Biological Bovine Seasonality", f"{f['seasonality']:+.3f}"],
             ["US Drought & Macro DXY Elasticity", f"{f['macro_drought']:+.3f}"],
             ["Kalman Adaptive Trend & Momentum", f"{f['technical_trend']:+.3f}"],
-            ["Walk-Forward ML Ensemble Alpha", f"{f['ml_score']:+.3f}"],
+            ["Corn Price Velocity (v2.0 Leading)", f"{f.get('corn_velocity', 0.0):+.3f}"],
+            ["Stacked ML Ensemble Alpha (v2.0)", f"{f['ml_score']:+.3f}"],
         ]
         print(f"\n[{sym}] {res['name']}:")
         print(tabulate(f_table, headers=["Factor Name", "Normalized Score"], tablefmt="simple"))

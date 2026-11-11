@@ -675,6 +675,7 @@ if "w_crush" not in st.session_state:
         st.session_state["w_seas"] = float(SUPER_ELNINO_FACTOR_WEIGHTS["seasonality"])
         st.session_state["w_macro"] = float(SUPER_ELNINO_FACTOR_WEIGHTS["macro_drought"])
         st.session_state["w_tech"] = float(SUPER_ELNINO_FACTOR_WEIGHTS["technical_trend"])
+        st.session_state["w_corn"] = float(SUPER_ELNINO_FACTOR_WEIGHTS.get("corn_velocity", 0.10))
         st.session_state["w_ml"] = float(SUPER_ELNINO_FACTOR_WEIGHTS["ml_ensemble"])
     else:
         st.session_state["w_crush"] = float(DEFAULT_FACTOR_WEIGHTS["crush_margin"])
@@ -682,6 +683,7 @@ if "w_crush" not in st.session_state:
         st.session_state["w_seas"] = float(DEFAULT_FACTOR_WEIGHTS["seasonality"])
         st.session_state["w_macro"] = float(DEFAULT_FACTOR_WEIGHTS["macro_drought"])
         st.session_state["w_tech"] = float(DEFAULT_FACTOR_WEIGHTS["technical_trend"])
+        st.session_state["w_corn"] = float(DEFAULT_FACTOR_WEIGHTS.get("corn_velocity", 0.07))
         st.session_state["w_ml"] = float(DEFAULT_FACTOR_WEIGHTS["ml_ensemble"])
 
 if st.sidebar.button("APPLY REGIME FACTOR WEIGHTS [F4]", width="stretch"):
@@ -690,17 +692,19 @@ if st.sidebar.button("APPLY REGIME FACTOR WEIGHTS [F4]", width="stretch"):
     st.session_state["w_seas"] = float(SUPER_ELNINO_FACTOR_WEIGHTS["seasonality"])
     st.session_state["w_macro"] = float(SUPER_ELNINO_FACTOR_WEIGHTS["macro_drought"])
     st.session_state["w_tech"] = float(SUPER_ELNINO_FACTOR_WEIGHTS["technical_trend"])
+    st.session_state["w_corn"] = float(SUPER_ELNINO_FACTOR_WEIGHTS.get("corn_velocity", 0.10))
     st.session_state["w_ml"] = float(SUPER_ELNINO_FACTOR_WEIGHTS["ml_ensemble"])
     st.rerun()
 
 st.sidebar.markdown("---")
-st.sidebar.caption("FACTOR WEIGHT ALLOCATION")
-w_crush = st.sidebar.slider("Crush / Feedlot Spread", 0.0, 1.0, st.session_state["w_crush"], 0.05)
-w_cot = st.sidebar.slider("CFTC Smart Money COT", 0.0, 1.0, st.session_state["w_cot"], 0.05)
-w_seas = st.sidebar.slider("Biological Seasonality", 0.0, 1.0, st.session_state["w_seas"], 0.05)
-w_macro = st.sidebar.slider("Drought & Macro DXY", 0.0, 1.0, st.session_state["w_macro"], 0.05)
-w_tech = st.sidebar.slider("Kalman Trend Momentum", 0.0, 1.0, st.session_state["w_tech"], 0.05)
-w_ml = st.sidebar.slider("ML Ensemble Alpha", 0.0, 1.0, st.session_state["w_ml"], 0.05)
+st.sidebar.caption("FACTOR WEIGHT ALLOCATION (v2.0 7-FACTOR ENGINE)")
+w_crush = st.sidebar.slider("Crush / Feedlot Spread", 0.0, 1.0, st.session_state.get("w_crush", 0.22), 0.05)
+w_cot = st.sidebar.slider("CFTC Smart Money COT", 0.0, 1.0, st.session_state.get("w_cot", 0.18), 0.05)
+w_seas = st.sidebar.slider("Biological Seasonality", 0.0, 1.0, st.session_state.get("w_seas", 0.15), 0.05)
+w_macro = st.sidebar.slider("Drought & Macro DXY", 0.0, 1.0, st.session_state.get("w_macro", 0.15), 0.05)
+w_tech = st.sidebar.slider("Kalman + MACD + Squeeze", 0.0, 1.0, st.session_state.get("w_tech", 0.15), 0.05)
+w_corn = st.sidebar.slider("Corn Price Velocity (v2.0)", 0.0, 1.0, st.session_state.get("w_corn", 0.07), 0.05)
+w_ml = st.sidebar.slider("Stacked ML Ensemble Alpha", 0.0, 1.0, st.session_state.get("w_ml", 0.08), 0.05)
 
 custom_weights = {
     "crush_margin": w_crush,
@@ -708,6 +712,7 @@ custom_weights = {
     "seasonality": w_seas,
     "macro_drought": w_macro,
     "technical_trend": w_tech,
+    "corn_velocity": w_corn,
     "ml_ensemble": w_ml
 }
 
@@ -1071,18 +1076,20 @@ if app_mode == "01 // LIVE COCKPIT":
             bbg_render_chart(fig_corr)
 
     with r2_c2:
-        # Chart 4: Multi-Factor Institutional Polar Radar Chart
-        categories = ["CRUSH SPREAD", "COT SMART MONEY", "SEASONALITY", "DROUGHT/DXY", "KALMAN TREND", "ML ENSEMBLE"]
+        # Chart 4: Multi-Factor Institutional Polar Radar Chart (v2.0 7-Factor Model)
+        categories = ["CRUSH SPREAD", "COT SMART MONEY", "SEASONALITY", "DROUGHT/DXY", "KALMAN TREND", "CORN VELOCITY", "ML ENSEMBLE"]
         le_factors = live_signals["LE=F"]["factor_breakdown"]
         gf_factors = live_signals["GF=F"]["factor_breakdown"]
 
         le_scores = [
             le_factors["crush_margin"], le_factors["cot_sentiment"], le_factors["seasonality"],
-            le_factors["macro_drought"], le_factors["technical_trend"], le_factors["ml_score"]
+            le_factors["macro_drought"], le_factors["technical_trend"],
+            le_factors.get("corn_velocity", 0.0), le_factors["ml_score"]
         ]
         gf_scores = [
             gf_factors["crush_margin"], gf_factors["cot_sentiment"], gf_factors["seasonality"],
-            gf_factors["macro_drought"], gf_factors["technical_trend"], gf_factors["ml_score"]
+            gf_factors["macro_drought"], gf_factors["technical_trend"],
+            gf_factors.get("corn_velocity", 0.0), gf_factors["ml_score"]
         ]
         le_vals_loop = le_scores + [le_scores[0]]
         gf_vals_loop = gf_scores + [gf_scores[0]]
@@ -1346,7 +1353,7 @@ if app_mode == "01 // LIVE COCKPIT":
     ]
     st.dataframe(pd.DataFrame(risk_table_data), hide_index=True, width="stretch")
 
-    # Mathematical Factor Attribution Breakdown Table
+    # Mathematical Factor Attribution Breakdown Table (v2.0 7-Factor Model)
     fb = sig["factor_breakdown"]
     weights = custom_weights
     factor_items = [
@@ -1355,7 +1362,8 @@ if app_mode == "01 // LIVE COCKPIT":
         ("Biological Seasonality", "Climatology Cycle", fb["seasonality"], weights["seasonality"]),
         ("Drought & Macro DXY", "Macro Environment", fb["macro_drought"], weights["macro_drought"]),
         ("Kalman Adaptive Trend", "Technical Momentum", fb["technical_trend"], weights["technical_trend"]),
-        ("Walk-Forward ML Model", "Predictive Ensemble", fb["ml_score"], weights["ml_ensemble"]),
+        ("Corn Price Velocity", "Feed Grain Velocity", fb.get("corn_velocity", 0.0), weights.get("corn_velocity", 0.07)),
+        ("Stacked ML Ensemble", "Predictive 3-Layer Meta", fb["ml_score"], weights["ml_ensemble"]),
     ]
 
     total_w = sum(w for _, _, _, w in factor_items) or 1.0
@@ -1386,6 +1394,7 @@ if app_mode == "01 // LIVE COCKPIT":
             bbg_section_title("EXECUTION DISPATCH TICKET [OMON <GO>]")
             st.write(f"**Target Instrument:** `{sym_code}` ({COMMODITY_SPECS[sym_code].name})")
             st.write(f"**Recommended Order:** `{sig['signal_regime']}` | `{sig['recommended_contracts']} Contracts`")
+            st.write(f"**Kelly Sizing Edge:** `{sig.get('kelly_fraction', 0.0)*100:.1f}%` recommended allocation (Half-Kelly)")
             st.write(f"**Execution Brackets:** `Stop: ${sig['stop_loss_price']:.2f}` | `Take Profit: ${sig['take_profit_price']:.2f}`")
             st.write(f"**Est. Slippage / Fees:** `$12.50` slippage | `$4.80` CME clearing")
 
@@ -1450,7 +1459,8 @@ elif app_mode == "02 // STRATEGY BACKTESTER":
     strategy_mode = col2.selectbox("Strategy Mode", ["directional (Multi-Factor Alpha)", "spread_trading (Cattle Crush Spread)"])
     mode_str = "directional" if "directional" in strategy_mode else "spread_trading"
     init_capital = col3.number_input("Initial Portfolio Capital ($)", value=100_000, step=10_000)
-    enable_ml_bt = col4.checkbox("Enable Walk-Forward ML Alpha", value=True)
+    enable_ml_bt = col4.checkbox("Enable Walk-Forward ML Alpha (v2.0)", value=True)
+    use_ic_bt = col4.checkbox("Dynamic IC Re-weighting (v2.0)", value=False)
 
     if st.button("EXECUTE HISTORICAL BACKTEST [RUN // F5]", width="stretch"):
         with st.spinner("Executing event-driven multi-factor simulation..."):
@@ -1458,7 +1468,8 @@ elif app_mode == "02 // STRATEGY BACKTESTER":
                 factor_weights=custom_weights,
                 enable_ml=enable_ml_bt,
                 mode=mode_str,
-                enso_regime=active_enso_regime
+                enso_regime=active_enso_regime,
+                use_ic_weighting=use_ic_bt
             )
             signals_df = strategy.generate_signals(market_data, target_asset=sym_code)
             backtester = BovineBacktester(initial_capital=init_capital)
@@ -1520,6 +1531,33 @@ elif app_mode == "02 // STRATEGY BACKTESTER":
             bbg_plot_theme(fig_dd, title="UNDERWATER PORTFOLIO DRAWDOWN PROFILE (%)", height=240, x_title="DATE", y_title="DRAWDOWN %")
             bbg_render_chart(fig_dd)
 
+            # Signal Dynamics & Kelly Fraction (v2.0)
+            if "kelly_fraction" in signals_df.columns and "composite_alpha" in signals_df.columns:
+                fig_dyn = make_subplots(rows=2, cols=1, shared_xaxes=True, subplot_titles=["COMPOSITE ALPHA [-1 to +1] & TARGET WEIGHT", "HALF-KELLY SIZING ALLOCATION HINT (%)"])
+                fig_dyn.add_trace(go.Scatter(x=signals_df.index, y=signals_df["composite_alpha"], line=dict(color="#00e5ff", width=1.8), name="Composite Alpha"), row=1, col=1)
+                fig_dyn.add_trace(go.Scatter(x=signals_df.index, y=signals_df["target_weight"], line=dict(color="#ff9900", width=1.5, dash="dot"), name="Target Weight"), row=1, col=1)
+                fig_dyn.add_hline(y=0.0, line_dash="dash", line_color="#444b58", row=1, col=1)
+
+                kelly_pct = signals_df["kelly_fraction"] * 100.0
+                fig_dyn.add_trace(go.Scatter(x=signals_df.index, y=kelly_pct, fill="tozeroy", fillcolor="rgba(0, 255, 102, 0.15)", line=dict(color="#00ff66", width=1.8), name="Kelly Allocation %"), row=2, col=1)
+                fig_dyn.add_hline(y=25.0, line_dash="dash", line_color="#ff9900", annotation_text="MODERATE CONVICTION (25%)", row=2, col=1)
+                bbg_plot_theme(fig_dyn, title="SIGNAL DYNAMICS & HALF-KELLY POSITION SIZING HINTS (v2.0) [KELLY <GO>]", height=380)
+                bbg_render_chart(fig_dyn)
+
+            # Rolling Factor Information Coefficient (IC) (v2.0)
+            factors_only = signals_df[[c for c in ["crush_margin", "cot_sentiment", "seasonality", "macro_drought", "technical_trend", "corn_velocity"] if c in signals_df.columns]]
+            if not factors_only.empty:
+                roll_ic = strategy.factor_engine.calculate_rolling_ic(factors_only, market_data[sym_code]["Close"], window=126)
+                if not roll_ic.empty:
+                    fig_ic = go.Figure()
+                    ic_colors = {"crush_margin": "#ff9900", "cot_sentiment": "#00ff66", "seasonality": "#00e5ff", "macro_drought": "#e056fd", "technical_trend": "#f0932b", "corn_velocity": "#f9ca24"}
+                    for col in roll_ic.columns:
+                        fig_ic.add_trace(go.Scatter(x=roll_ic.index, y=roll_ic[col], name=col.replace("_", " ").title(), line=dict(color=ic_colors.get(col, "#ffffff"), width=1.5)))
+                    fig_ic.add_hline(y=0.0, line_dash="dash", line_color="#444b58")
+                    fig_ic.add_hline(y=0.05, line_dash="dot", line_color="#00ff66", annotation_text="STRONG ALPHA (IC > +0.05)")
+                    bbg_plot_theme(fig_ic, title="ROLLING 6-MONTH INFORMATION COEFFICIENT (IC) PER FACTOR [IC <GO>]", height=320, x_title="DATE", y_title="SPEARMAN IC")
+                    bbg_render_chart(fig_ic)
+
             # Monthly Returns Matrix Heatmap
             bbg_section_title("MONTHLY RETURNS COMPOUNDED MATRIX (%)")
             if not monthly.empty:
@@ -1553,12 +1591,14 @@ elif app_mode == "03 // FACTOR RESEARCH":
     bbg_header("03 // QUANTITATIVE FACTOR RESEARCH & MICROSTRUCTURE [ANR <GO>]", cmd="FUNCTION: FACTOR DEEP DIVES", status="ANR: READY")
     st.caption("Mathematical validation of Cattle Crush spread, CFTC COT smart money positioning, biological seasonality, and drought.")
 
-    f_tab1, f_tab2, f_tab3, f_tab4, f_tab5 = st.tabs([
+    f_tab1, f_tab2, f_tab3, f_tab4, f_tab5, f_tab6, f_tab7 = st.tabs([
         "[01] CATTLE CRUSH SPREAD",
         "[02] CFTC COT POSITIONING",
         "[03] BIOLOGICAL SEASONALITY",
         "[04] DROUGHT & MACRO DXY",
-        "[05] ENSO ONI CLIMATOLOGY"
+        "[05] ENSO ONI CLIMATOLOGY",
+        "[06] CORN VELOCITY SPREAD (v2.0)",
+        "[07] ML ENSEMBLE ARCHITECTURE (v2.0)"
     ])
 
     with f_tab1:
@@ -1683,6 +1723,79 @@ elif app_mode == "03 // FACTOR RESEARCH":
             {"Channel": "Australian Beef Supply", "Condition": "Severe Southern Hemisphere drought", "Bovine Impact": "Short-term liquidation followed by global beef vacuum", "Alpha Direction": "Long-Term Bullish US Export Competitiveness"},
         ]
         st.dataframe(pd.DataFrame(mech_data), width="stretch")
+
+    with f_tab6:
+        bbg_section_title("CROSS-ASSET CORN PRICE VELOCITY & FEED SPREAD DYNAMICS (v2.0 NEW)")
+        st.markdown("""
+        **Leading Transformation Margin Signal:**
+        Corn (`ZC=F`) is the single largest variable feeding input in beef finishing (~50 bushels per head).
+        Because feeding cycles span 150-200 days, falling corn price momentum acts as a **3 to 6-month leading indicator** of feedlot margin expansion and increased willingness to bid up feeder calves (`GF=F`).
+        
+        $$F_{\\text{corn\\_velocity}} = -1.0 \\times \\frac{0.60 \\cdot \\Delta_{60} P_{\\text{corn}} + 0.40 \\cdot \\Delta_{20} P_{\\text{corn}}}{\\sigma_{252}}$$
+        """)
+
+        corn_data = market_data.get("ZC=F", pd.DataFrame())
+        if not corn_data.empty and "Close" in corn_data.columns:
+            corn_close = corn_data["Close"]
+            mom60 = corn_close.pct_change(60) * 100.0
+            mom20 = corn_close.pct_change(20) * 100.0
+
+            fig_corn_v = make_subplots(rows=2, cols=1, shared_xaxes=True, subplot_titles=["CORN FUTURES PRICE ($/bu) [ZC=F]", "CORN PRICE MOMENTUM VELOCITY (20D & 60D %)"])
+            fig_corn_v.add_trace(go.Scatter(x=corn_close.index, y=corn_close / 100.0, line=dict(color="#f9ca24", width=2), name="Corn Price ($/bu)"), row=1, col=1)
+
+            fig_corn_v.add_trace(go.Scatter(x=mom60.index, y=mom60, line=dict(color="#ff9900", width=1.8), name="60D Corn Return %"), row=2, col=1)
+            fig_corn_v.add_trace(go.Scatter(x=mom20.index, y=mom20, line=dict(color="#00e5ff", width=1.5, dash="dot"), name="20D Corn Return %"), row=2, col=1)
+            fig_corn_v.add_hline(y=0.0, line_dash="dash", line_color="#444b58", row=2, col=1)
+            fig_corn_v.add_hline(y=-10.0, line_dash="dot", line_color="#00ff66", annotation_text="CHEAP FEED SIGNAL (< -10%) -> BULLISH CATTLE", row=2, col=1)
+
+            bbg_plot_theme(fig_corn_v, title="CORN FUTURES PRICE & VELOCITY ALPHA LEAD", height=460)
+            bbg_render_chart(fig_corn_v)
+
+        corn_regime_table = [
+            {"Corn Price Band": "< $3.80 / bu (Crash/Glut)", "Feed Cost per Head": "< $190.00", "Feeder Parity Target": "1.45 - 1.50 (Calf Premium)", "Feedlot Response": "Aggressive placement, tolerance for high calf prices", "Model Alpha": "+0.80 (Bullish LE & GF)"},
+            {"Corn Price Band": "$4.00 - $5.00 / bu (Normal)", "Feed Cost per Head": "$200 - $250", "Feeder Parity Target": "1.35 (Equilibrium)", "Feedlot Response": "Normal seasonal procurement", "Model Alpha": "0.00 (Neutral)"},
+            {"Corn Price Band": "$5.50 - $6.50 / bu (Elevated)", "Feed Cost per Head": "$275 - $325", "Feeder Parity Target": "1.25 - 1.30 (Discount)", "Feedlot Response": "Placement slowdown, feedlot margin squeeze", "Model Alpha": "-0.50 (Bearish GF)"},
+            {"Corn Price Band": "> $7.00 / bu (Drought Spike)", "Feed Cost per Head": "> $350.00", "Feeder Parity Target": "< 1.20 (Severe Cutback)", "Feedlot Response": "Emergency early slaughter, feedlot liquidation", "Model Alpha": "-0.90 (Severe Bearish)"},
+        ]
+        bbg_section_title("CORN FEED COST REGIME & PARITY EQUILIBRIUM TABLE")
+        st.dataframe(pd.DataFrame(corn_regime_table), width="stretch")
+
+    with f_tab7:
+        bbg_section_title("STACKED ENSEMBLE ML ARCHITECTURE & FEATURE IMPORTANCE (v2.0)")
+        st.markdown("""
+        **v2.0 Three-Layer Meta-Learner Pipeline:**
+        1. **Level-0 Base Learners:** HistGradientBoostingClassifier (fast tree booster) + RandomForestClassifier + ExtraTreesClassifier (decorrelated extreme trees).
+        2. **Level-1 Stacking Meta-Learner:** LogisticRegression trained on out-of-fold probability vectors $[p_1, p_2, p_3]$ to optimize ensemble weights.
+        3. **Dynamic OOS Accuracy Weighting:** Base model blend weights adjust dynamically according to out-of-sample accuracy on recent walk-forward folds.
+        4. **Smooth Calibration:** Probabilities mapped to $[-1.0, +1.0]$ using a smooth $\\tanh$ transform:
+           $$\\text{Signal}_t = \\tanh\\left(0.9 \\times \\frac{p_t - 0.5}{0.25}\\right)$$
+        """)
+
+        feature_importance_data = [
+            {"Feature": "vol_regime (vol10/vol60)", "Category": "Volatility State", "Gini Importance": 0.118, "Description": "Short vs long-term volatility ratio identifying turbulence"},
+            {"Feature": "crush_margin_z60", "Category": "Crush Spread", "Gini Importance": 0.104, "Description": "60-day rolling z-score of gross feedlot margin"},
+            {"Feature": "macd_hist_norm", "Category": "Technical Momentum", "Gini Importance": 0.095, "Description": "12/26/9 MACD histogram normalized by 60d rolling std"},
+            {"Feature": "ret_5d", "Category": "Price Action", "Gini Importance": 0.089, "Description": "5-day trailing price return"},
+            {"Feature": "bollinger_pct_b", "Category": "Technical Band", "Gini Importance": 0.082, "Description": "Location of close within 20-day 2-sigma Bollinger Bands"},
+            {"Feature": "crush_x_macro", "Category": "Interaction", "Gini Importance": 0.076, "Description": "Interaction term: Cattle crush margin * US drought severity"},
+            {"Feature": "corn_velocity_delta5", "Category": "Feed Momentum", "Gini Importance": 0.071, "Description": "5-day delta of corn velocity factor"},
+            {"Feature": "ret_20d", "Category": "Price Action", "Gini Importance": 0.068, "Description": "20-day trailing price return"},
+            {"Feature": "cot_sentiment_z60", "Category": "Microstructure", "Gini Importance": 0.063, "Description": "60-day rolling z-score of CFTC commercial net position"},
+            {"Feature": "vol_weighted_ret5", "Category": "Volume Momentum", "Gini Importance": 0.059, "Description": "5-day price return weighted by volume expansion ratio"},
+            {"Feature": "month_sin / month_cos", "Category": "Seasonality", "Gini Importance": 0.052, "Description": "Cyclical month harmonic encoding for biological cycles"},
+            {"Feature": "pct_from_20d_high", "Category": "Breakout Proximity", "Gini Importance": 0.048, "Description": "Distance from 20-day high channel"},
+        ]
+        df_fi = pd.DataFrame(feature_importance_data)
+
+        fig_fi = px.bar(
+            df_fi, x="Gini Importance", y="Feature", orientation="h",
+            color="Category", color_discrete_sequence=["#ff9900", "#00e5ff", "#00ff66", "#e056fd", "#f9ca24", "#f0932b", "#606575"]
+        )
+        fig_fi.update_layout(yaxis=dict(autorange="reversed"))
+        bbg_plot_theme(fig_fi, title="ML FEATURE IMPORTANCE RANKING (TOP 12 PREDICTORS) [ANR <GO>]", height=440)
+        bbg_render_chart(fig_fi)
+
+        st.dataframe(df_fi, hide_index=True, width="stretch")
 
 
 # -------------------------------------------------------------------------

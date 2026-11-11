@@ -135,12 +135,14 @@ class BovinePaperTrader:
                 "take_profit_price": take_profit,
                 "atr_14": round(atr, 3),
                 "annualized_vol_pct": round(vol * 100.0, 1),
+                "kelly_fraction": round(float(last_row.get("kelly_fraction", 0.0)), 3),
                 "factor_breakdown": {
                     "crush_margin": round(float(last_row["crush_margin"]), 3),
                     "cot_sentiment": round(float(last_row["cot_sentiment"]), 3),
                     "seasonality": round(float(last_row["seasonality"]), 3),
                     "macro_drought": round(float(last_row["macro_drought"]), 3),
                     "technical_trend": round(float(last_row["technical_trend"]), 3),
+                    "corn_velocity": round(float(last_row.get("corn_velocity", 0.0)), 3),
                     "ml_score": round(float(last_row.get("ml_score", 0.0)), 3),
                 },
                 "enso_telemetry": enso_telemetry

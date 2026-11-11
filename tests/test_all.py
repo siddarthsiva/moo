@@ -95,7 +95,7 @@ class TestBovineTradingSystem(unittest.TestCase):
         self.assertTrue((score >= -1.0).all() and (score <= 1.0).all())
 
     def test_technical_factors(self):
-        """Verify Kalman trend, ATR, RSI, and Garman-Klass volatility."""
+        """Verify Kalman trend, ATR, RSI, Garman-Klass volatility, MACD, Bollinger Squeeze, and CMO."""
         df = self.market_data["LE=F"]
         atr = BovineTechnicalFactors.calculate_atr(df)
         self.assertTrue((atr.dropna() > 0).all())
@@ -109,6 +109,16 @@ class TestBovineTradingSystem(unittest.TestCase):
         vol = BovineTechnicalFactors.calculate_garman_klass_vol(df)
         self.assertTrue((vol.dropna() > 0).all())
 
+        # v2.0 indicators: MACD, Bollinger Squeeze, Chande Momentum
+        macd_sig = BovineTechnicalFactors.calculate_macd_signal(df["Close"])
+        self.assertTrue((macd_sig >= -1.0).all() and (macd_sig <= 1.0).all())
+
+        squeeze = BovineTechnicalFactors.calculate_bollinger_squeeze(df)
+        self.assertTrue((squeeze >= -1.0).all() and (squeeze <= 1.0).all())
+
+        cmo = BovineTechnicalFactors.calculate_chande_momentum(df["Close"])
+        self.assertTrue((cmo >= -1.0).all() and (cmo <= 1.0).all())
+
         tech_calc = BovineTechnicalFactors()
         score = tech_calc.compute_factor_score(df)
         self.assertTrue((score >= -1.0).all() and (score <= 1.0).all())
@@ -117,7 +127,9 @@ class TestBovineTradingSystem(unittest.TestCase):
         """Verify factor aggregation, composite alpha, and IC calculations."""
         engine = BovineFactorEngine()
         factors_df = engine.compute_all_factors(self.market_data, target_asset="LE=F")
-        self.assertEqual(len(factors_df.columns), 5)
+        self.assertEqual(len(factors_df.columns), 6)
+        self.assertIn("corn_velocity", factors_df.columns)
+        self.assertIn("crush_margin", factors_df.columns)
 
         composite = engine.compute_composite_alpha(factors_df)
         self.assertTrue((composite >= -1.0).all() and (composite <= 1.0).all())
@@ -125,6 +137,14 @@ class TestBovineTradingSystem(unittest.TestCase):
         ic = engine.calculate_factor_ic(factors_df, self.market_data["LE=F"]["Close"])
         self.assertIn("crush_margin", ic)
         self.assertIn("cot_sentiment", ic)
+        self.assertIn("corn_velocity", ic)
+
+        # v2.0 rolling IC and correlation matrix
+        roll_ic = engine.calculate_rolling_ic(factors_df, self.market_data["LE=F"]["Close"], window=60)
+        self.assertIn("corn_velocity", roll_ic.columns)
+
+        corr_mat = engine.get_factor_correlation_matrix(factors_df)
+        self.assertEqual(corr_mat.shape, (6, 6))
 
     def test_ml_alpha_model(self):
         """Verify ML feature engineering and walk-forward prediction."""
@@ -174,6 +194,8 @@ class TestBovineTradingSystem(unittest.TestCase):
         """Verify full backtesting simulation and tear-sheet metrics."""
         strat = BovineQuantitativeStrategy(enable_ml=False) # Fast test without full ML loop
         signals_df = strat.generate_signals(self.market_data, target_asset="LE=F")
+        self.assertIn("kelly_fraction", signals_df.columns)
+        self.assertIn("corn_velocity", signals_df.columns)
 
         backtester = BovineBacktester(initial_capital=100_000.0)
         bt_res = backtester.run_backtest(self.market_data, signals_df, target_symbol="LE=F")
