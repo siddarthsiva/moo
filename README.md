@@ -198,11 +198,21 @@ The Streamlit web interface (`ui/app.py`) adheres strictly to Bloomberg Terminal
 
 ## 6. Quickstart Guide
 
-### 1. Installation
+### 1. Installation & Development Environments
+
+#### Option A: Local Python Environment
 The entire platform relies solely on open-source packages:
 ```bash
 pip install -r requirements.txt
 ```
+
+#### Option B: Turnkey VS Code Dev Container (Docker)
+Project MOO includes a pre-configured `.devcontainer/devcontainer.json` for isolated zero-setup execution:
+1. Open this repository in VS Code with the **Dev Containers** extension installed.
+2. When prompted, click **"Reopen in Container"** (or press `F1` / `Ctrl+Shift+P` > `Dev Containers: Reopen in Container`).
+3. VS Code launches an isolated Debian Python 3.11 environment with all system and Python dependencies installed and auto-starts Streamlit on port `8501`.
+4. **Terminal Prompt Note**: Inside the container, the integrated terminal opens Linux Bash showing `vscode ➜ /workspaces/moo (main) $` (`vscode` user, `/workspaces/moo` mount path) instead of Windows PowerShell.
+5. **Switching Back to Host**: To return to your Windows host PowerShell at any time, click the remote status indicator in the bottom-left corner of VS Code (`>< Dev Container`) and select **"Reopen Folder Locally"**.
 
 ### 2. Live Alpha Scan (CLI)
 ```bash
@@ -545,11 +555,21 @@ The Streamlit web interface (`ui/app.py`) adheres strictly to Bloomberg Terminal
 
 ## 5. Quickstart Guide
 
-### 1. Installation
+### 1. Installation & Development Environments
+
+#### Option A: Local Python Environment
 The entire platform relies solely on open-source packages:
 ```bash
 pip install -r requirements.txt
 ```
+
+#### Option B: Turnkey VS Code Dev Container (Docker)
+Project MOO includes a pre-configured `.devcontainer/devcontainer.json` for isolated zero-setup execution:
+1. Open this repository in VS Code with the **Dev Containers** extension installed.
+2. When prompted, click **"Reopen in Container"** (or press `F1` / `Ctrl+Shift+P` > `Dev Containers: Reopen in Container`).
+3. VS Code launches an isolated Debian Python 3.11 environment with all system and Python dependencies installed and auto-starts Streamlit on port `8501`.
+4. **Terminal Prompt Note**: Inside the container, the integrated terminal opens Linux Bash showing `vscode ➜ /workspaces/moo (main) $` (`vscode` user, `/workspaces/moo` mount path) instead of Windows PowerShell.
+5. **Switching Back to Host**: To return to your Windows host PowerShell at any time, click the remote status indicator in the bottom-left corner of VS Code (`>< Dev Container`) and select **"Reopen Folder Locally"**.
 
 ### 2. Live Alpha Scan (CLI)
 Scan real-time market data and calculate volatility-targeted position sizing:

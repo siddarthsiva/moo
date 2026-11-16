@@ -7,7 +7,7 @@ Generates directional alpha and mean-reverting spread signals.
 
 import numpy as np
 import pandas as pd
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 from config import CATTLE_CRUSH_CONFIG
 
 

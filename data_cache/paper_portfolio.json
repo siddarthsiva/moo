@@ -1,16 +1,8 @@
 {
   "created_at": "2026-08-31T22:45:22.233435",
-  "cash": 170386.6,
-  "equity": 234487.0,
-  "positions": {
-    "LE=F": {
-      "contracts": 1,
-      "entry_price": 67.249,
-      "entry_time": "2026-09-11T19:13:24.201167",
-      "stop_loss": 63.4,
-      "take_profit": 73.435
-    }
-  },
+  "cash": 231164.5,
+  "equity": 231164.5,
+  "positions": {},
   "trade_history": [
     {
       "timestamp": "2026-09-01T18:14:53.325280",
@@ -27,7 +19,15 @@
       "contracts": 1,
       "exit_price": 344.425,
       "pnl": 11485.0
+    },
+    {
+      "timestamp": "2026-11-12T01:26:13.160089",
+      "symbol": "LE=F",
+      "action": "CLOSE",
+      "contracts": 1,
+      "exit_price": 219.2,
+      "pnl": 60777.9
     }
   ],
-  "last_updated": "2026-11-11T13:00:42.932045"
+  "last_updated": "2026-11-12T01:26:13.160104"
 }

@@ -4,7 +4,7 @@ Models international beef and live cattle shipments, bilateral volumes,
 transport modes, and interactive Sankey diagram network topologies.
 """
 
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any, Tuple, Optional
 import pandas as pd
 
 

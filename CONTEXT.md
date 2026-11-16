@@ -487,6 +487,13 @@ streamlit run ui/app.py --server.port 8502 --server.headless true
 git remote add origin https://github.com/<your-username>/moo.git
 git push -u origin main
 # Then link repository on share.streamlit.io (zero credit card, free forever)
+
+# 11. VS Code Dev Container & Docker Environment
+# - Pre-configured via .devcontainer/devcontainer.json (Python 3.11 Debian Bookworm)
+# - Automatically installs packages.txt and requirements.txt
+# - Automatically boots Streamlit dashboard on port 8501
+# - Terminal prompt inside container: `vscode ➜ /workspaces/moo (main) $`
+# - To return to Windows PowerShell: Click `>< Dev Container` in bottom-left corner -> "Reopen Folder Locally"
 ```
 
 ---

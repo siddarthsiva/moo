@@ -35,6 +35,9 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### Dev Container Environment (Alternative):
+If opening via VS Code Dev Containers (`.devcontainer/devcontainer.json`), all dependencies are installed automatically and Streamlit launches on port `8501`. Inside the container, your terminal prompt shows `vscode ➜ /workspaces/moo (main) $`. To switch back to host PowerShell, click `>< Dev Container` in the bottom-left corner and select **"Reopen Folder Locally"**.
+
 ---
 
 ## 3. Starting the Dashboard
